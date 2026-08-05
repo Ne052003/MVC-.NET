@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using MVC.Domain.Services;
+using MVC.Domain.Services.Interfaces;
 using MVC.Infrastructure.DataContext;
 
 namespace ADSI2026
@@ -16,6 +18,10 @@ namespace ADSI2026
             {
                 opt.UseSqlServer(builder.Configuration.GetConnectionString("ConnectionStringADSI_SQL_SERVER"));
             });
+
+            builder.Services.AddScoped<ICustomerService, CustomerService>();
+            builder.Services.AddScoped<ISupplierServices, SupplierServices>();
+            builder.Services.AddScoped<IProductService, ProductService>();
 
             var app = builder.Build();
 
