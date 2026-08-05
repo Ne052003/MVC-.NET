@@ -1,0 +1,373 @@
+﻿@model IEnumerable<MVC.Infrastructure.Models.Product>
+
+<div class="row">
+    <div class="col-md-8">
+        <h1>Listado Productos </h1>
+    </div>
+    <div class="col-md-4">
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-primary float-end" onclick="openModal(false)">
+            <i class="fa-solid fa-plus"></i>
+            Crear Producto
+        </button>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <table class="table" id="tblProduct">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Precio</th>
+                    <th>Cantidad</th>
+                    <th>Proveedor</th>
+                    <th>Categoría</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="modalProduct" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="idTitleProduct">Create product</h1>
+                <button type="button" class="btn-close" onclick="clearFormProduct" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <section class="row">
+                        <div class="col-md-3">
+                            <label class="col-form-label">Product</label>
+                            <input type="text" class="form-control" id="txtProduct" maxlength="5" placeholder="Nombre del producto" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="col-form-label">Price</label>
+                            <input type="text" class="form-control" id="txtPrice" placeholder="Precio" />
+                        </div>
+                        <div class="col-md-5">
+                            <label class="col-form-label">Stock</label>
+                            <input type="text" class="form-control" id="txtStock" placeholder="Stock" />
+                        </div>
+                    </section>
+
+                    <section class="row">
+
+                        <div class="col-md-6">
+                            <label class="col-form-label">Category</label>
+                            <select id="cmbCategory" class="form-control" onchange="changeCmbCategory()">
+                                <option disabled selected>Select</option>
+                            </select>
+
+
+                        </div>
+
+
+
+
+                        <div class="col-md-6">
+                            <label class="col-form-label">Supplier</label>
+                            <select id="cmbSupplier" class="form-control" onchange="changeCmbSupplier()">
+                                <option disabled selected>Select</option>
+                            </select>
+                        </div>
+                    </section>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" onclick="clearFormProduct()">Cancel</button>
+                <button type="button" id="btnModalSave" class="btn btn-outline-success" onclick="onSaveProduct()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+
+        var isEdit=false;
+        var idCategorySelected=0;
+        var idSupplierSelected=0;
+        var listProduct= [];
+        var listCategory= [];
+        var listSupplier= [];
+
+        $(document).ready(function(){
+            getAllCategories();
+            getAllProducts();
+            getAllSuppliers();
+        });
+
+        
+        function getAllSuppliers(){
+            $.ajax({
+                url: '@Url.Action("GetAllSuppliers", "Supplier")',
+                method:'GET',
+                dataType: 'json',
+                success: function(result)
+                {
+                listSupplier= result;
+                loadCmbSupplier(listSupplier);
+                console.log(result);
+                },
+                error: function(error){
+                    console.error(error);
+                }
+            });
+        }
+        function getAllCategories(){
+            $.ajax({
+                url: '@Url.Action("GetAllCategories", "Category")',
+                method:'GET',
+                dataType: 'json',
+                success: function(result)
+                {
+
+                listCategory= result;
+                console.log(result);
+                loadCmbCategory(listCategory);
+                },
+                error: function(error){
+                    console.error(error);
+                }
+            });
+        }
+
+        function getAllProducts(){
+            $.ajax({
+                url:'@Url.Action("GetAllProducts", "Product")',
+                method:'GET',
+                dataType: 'json',
+                success: function(result)
+                {
+                listProduct=result;
+                console.log(listProduct);
+                //loadTable(result);
+                },
+                error: function(error){
+                    console.error(error);
+                    alertError('Ha ocurrido un error, por favor vuelva a intentarlo');
+                }
+            });
+        }
+
+        function loadCmbCategory(data, selected){
+            $("#cmbCategory").empty();
+            $("#cmbCategory").append('<option value=""disabled selected>Seleccione una categoría></option>');
+            $.each(data,function(i,lista){
+                if(data[i].idCategory == selected){
+                    $("#cmbCategory").append('<option value="'+ data[i].idCategory + '"selected>' + data[i].categoryName + '</option>')
+                }else{
+                    $("#cmbCategory").append('<option value="'+ data[i].idCategory + '">' + data[i].categoryName + '</option>')
+                }
+            });
+
+        }
+
+        function loadCmbSupplier(data, selected){
+            $("#cmbSupplier").empty();
+            $("#cmbSupplier").append('<option value=""disabled selected>Seleccione un proveedor></option>');
+            $.each(data,function(i,lista){
+                if(data[i].idCategory == selected){
+                    $("#cmbSupplier").append('<option value="'+ data[i].supplierId + '"selected>' + data[i].companyName + '</option>')
+                }else{
+                    $("#cmbSupplier").append('<option value="'+ data[i].supplierId + '">' + data[i].companyName + '</option>')
+                }
+            });
+
+        }
+
+        function changeCmbSupplier(){
+            const cmb= document.getElementById("cmbSupplier");
+            idSupplier = cmb.options[cmb.selectedIndex].value;
+            console.log('valor ha cambiado:', idSupplier);
+        }
+
+        function changeCmbCategory(){
+            const cmb= document.getElementById("cmbCategory");
+            idCategory = cmb.options[cmb.selectedIndex].value;
+            console.log('valor ha cambiado:', idCategory);
+        }
+
+        function deleteProduct(productId){
+            alertDelete().then(result=>{
+                if (result.isConfirmed){
+                    confirmDeleteProduct(productId);
+                }else{
+                    console.log('No se pudo eliminar',productId);
+                }
+            });
+        }
+
+        function confirmDeleteProduct(id){
+            $.ajax({
+                url:'@Url.Action("DeleteProduct", "Product")',
+                method:'DELETE',
+                data:{
+                    'productId':id
+                },
+                dataType: 'json',
+                success: function(result)
+                {
+                console.log(result);
+                toastMessage('success','Registro eliminado exitosamente');
+                getAllProducts();
+                },
+                error: function(error){
+                    console.error(error);
+                    alertError('Ha occurrido un error, por favor inténtalo nuevamente');
+                }
+            });
+        }
+
+        function loadTable(data){
+            $('#tblProduct').DataTable({
+                data: data,
+                destroy:true,
+                responsitive:true,
+                columns:[
+                    {data:'productName'},
+                    {data:'supplierId'},
+                    {data:'categoryId'},
+                    {data:'unitPrice'},
+                    {data:'unitsInStock'},
+                    {
+                        data: null,
+                        render: function(data){
+                            const id= data.productId;
+                            return `
+                                     <button class="btn btn-warning" onClick = "editProduct('`+ id +`')"> <i class="fas fa-edit"> </i> Edit </button>
+                                     <button class="btn btn-danger" onClick = "deleteProduct('`+ id +`')"> <i class="fas fa-trash-alt"> </i> Delete </button>
+                                     `
+                        }
+                    }
+                ]
+            })
+        }
+
+        function clearFormProduct(){
+             $('#txtProduct').val('');
+             $('#txtPrice').val('');
+             $('#txtStock').val('');
+             $('#modalProduct').modal('hide');
+             isEdit=false;
+         }
+
+         function validateForm(){
+             if($('#txtId').val()==''){
+                 $('#txtId').focus()
+                 toastMessage("warning",'El IdProduct es obligatorio.');
+                 return false;
+             }
+
+             if($('#txtCountry').val()==''){
+                 $('#txtCountry').focus()
+                 toastMessage("warning",'El País es obligatorio.');
+                 return false;
+             }
+
+             if($('#txtCompany').val()==''){
+                 $('#txtCompany').focus()
+                 toastMessage("warning",'La Empresa es obligatorio.');
+                 return false;
+             }
+
+             if($('#txtContactName').val()==''){
+                 $('#txtContactName').focus()
+                 toastMessage("warning",'El Responsable es obligatorio.');
+                 return false;
+             }
+
+             if($('#txtPhone').val()==''){
+                 $('#txtPhone').focus()
+                 toastMessage("warning",'El Teléfono es obligatorio.');
+                 return false;
+             }
+
+             return true;
+         }
+
+        function openModal(isEdit)
+        {
+             if(isEdit){
+                 $('#idTitleProduct').html('Editar producto');
+                 $('#btnModalSave').html('Editar');
+             }else{
+                 $('#idTitleProduct').html('Crear producto');
+                 $('#btnModalSave').html('Crear');
+             }
+
+             $('#modalProduct').modal('show');
+
+        }
+         function onSaveProduct(){
+             if(validateForm()){
+                 const idProduct=$('#txtId').val();
+                 const company=$('#txtCompany').val();
+                 const contactName=$('#txtContactName').val();
+                 const country=$('#txtCountry').val();
+                 const phone=$('#txtPhone').val();
+
+                 const product={
+                     'productId':idProduct,
+                     'companyName':company,
+                     'contactName':contactName,
+                     'country':country,
+                     'phone':phone,
+                 };
+
+                 if(isEdit){
+                   // confirmEditProduct(product);
+
+                 }else{
+                     addProduct(product);
+                 }
+
+                 console.log(product);
+             }
+         }
+
+         function addProduct(parameter){
+              $.ajax({
+                 url:'@Url.Action("AddProduct", "Product")',
+                 method:'POST',
+                 data:parameter,
+                 dataType:'json',
+                 success:function(result)
+                 {
+                     console.log(result);
+                     toastMessage('success','Registro creado exitosamente');
+                     clearFormProduct();
+                     getAllProducts();
+                 },
+                 error:function(error)
+                 {
+                     console.error(error);
+                  alertError('Ha ocurrido un error, por favor vuelva a intentarlo');
+
+                 }
+             });
+         }
+
+         function editProduct(id){
+             isEdit=true;
+             const product=listProduct.find(x=>x.productId==id);
+             $('#txtId').val(product.productId);
+             $('#txtId').attr('disabled',true);
+             $('#txtCompany').val(product.companyName);
+             $('#txtCountry').val(product.country);
+             $('#txtContactName').val(product.contactName);
+             $('#txtPhone').val(product.phone);
+
+             console.log(id);
+             openModal(true);
+         }
+
+          
+    </script>
+}

@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ADSI2026.styles.css" asp-append-version="true" />
+    <link href="https://cdn.datatables.net/v/dt/dt-2.3.8/datatables.min.css" rel="stylesheet" integrity="sha384-1BvCnyKidMPIGQGjvMn+w+90hHBhYJtF+R7os4NX2Abe7tSxWQadHRTSH5qb559A" crossorigin="anonymous">
 </head>
 <body>
     <header>
@@ -24,6 +25,18 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Category" asp-action="Index">Categories</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Customer" asp-action="Index">Customers</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Supplier" asp-action="SuppliersView">Suppliers</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Product" asp-action="Index">Products</a>
                         </li>
                     </ul>
                 </div>
@@ -44,6 +57,76 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdn.datatables.net/v/dt/dt-2.3.8/datatables.min.js" integrity="sha384-kjkli48Tmhwhaghq0IIRm8gFmMdnihfu1ywAOyyGWYMsoZZi/6AX2fWzpsqahoFw" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"> </script>
     @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+
+        function toastMessage(type, message) {
+        const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+        });
+
+        Toast.fire({
+        icon: type,
+        title: message
+        });
+        }
+
+        function alertDelete(){
+        return Swal.fire({
+        title: '¿Confirmar eliminación?',
+        text: '¡No podrás revertir esto!',
+        icon:'question',
+        showCancelButton: true,
+        cancelButtonText: 'Cancelar',
+        confirmButtonText: 'Sí, eliminar.',
+        confirmButtonColor: '#5E27F5',
+        cancelButtonColor: '#F52727'
+        });
+        }
+
+        function alertSucces(message, title = null) {
+        const alertTitle = title != null ? title : "Exitoso!";
+        return Swal.fire({
+        title: alertTitle,
+        text: message,
+        icon: 'success',
+        confirmButtonColor: '#3085d6',
+        confirmButtonText: 'Aceptar!',
+        });
+        }
+
+        function alertWarning(message, title = null) {
+        const alertTitle = title != null ? title : "Alerta!";
+        return Swal.fire({
+        title: alertTitle,
+        text: message,
+        icon: 'warning',
+        confirmButtonColor: '#3085d6',
+        confirmButtonText: 'Aceptar!',
+        });
+        }
+
+        function alertError(message, title = null) {
+        const alertTitle = title != null ? title : "Opps!";
+        return Swal.fire({
+        title: alertTitle,
+        text: message,
+        icon: 'error',
+        confirmButtonColor: '#3085d6',
+        confirmButtonText: 'Aceptar!',
+        });
+        }
+    </script>
 </body>
 </html>

@@ -1,0 +1,311 @@
+﻿@model IEnumerable<MVC.Infrastructure.Models.Customer>
+
+<div class="row">
+    <div class="col-md-8">
+        <h1>Listado Clientes </h1>
+    </div>
+    <div class="col-md-4">
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-primary float-end" onclick="openModal(false)">
+            <i class="fa-solid fa-plus"></i>
+            Crear Cliente
+        </button>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <table class="table" id="tblCustomer">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Id</th>
+                    <th>Pais</th>
+                    <th>Empresa</th>
+                    <th>Responsable</th>
+                    <th>Teléfono</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="modalCustomer" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Create customer</h1>
+                <button type="button" class="btn-close" onclick="clearFormCustomer" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <section class="row">
+                        <div class="col-md-3">
+                            <label class="col-form-label">ID</label>
+                            <input type="text" class="form-control" id="txtId" maxlength="5" placeholder="Digita el ID" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="col-form-label">País</label>
+                            <input type="text" class="form-control" id="txtCountry" placeholder="País" />
+                        </div>
+                        <div class="col-md-5">
+                            <label class="col-form-label">Empresa</label>
+                            <input type="text" class="form-control" id="txtCompany" placeholder="Empresa" />
+                        </div>
+                    </section>
+
+                    <section class="row">
+
+                        <div class="col-md-6">
+                            <label class="col-form-label">Responsable</label>
+                            <input type="text" class="form-control" id="txtContactName" placeholder="Responsable" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="col-form-label">Teléfono</label>
+                            <input type="text" class="form-control" id="txtPhone" placeholder="Teléfono" />
+                        </div>
+                    </section>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" onclick="clearFormCustomer()">Cancel</button>
+                <button type="button" id="btnModalSave" class="btn btn-outline-success" onclick="onSaveCustomer()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+
+        var isEdit=false;
+        var listCustomer=[];
+
+        $(document).ready(function(){
+            console.log("Hola clase");
+
+            $(document).ready(function(){
+            getAllCustomers();
+
+            });
+        });
+
+        function getAllCustomers(){
+            $.ajax({
+                url:'@Url.Action("GetAllCustomers", "Customer")',
+                method:'GET',
+                dataType: 'json',
+                success: function(result)
+                {
+                listCustomer= result;
+                loadTable(result);
+                },
+                error: function(error){
+                    console.error(error);
+                    alertError('Ha ocurrido un error, por favor vuelva a intentarlo');
+                }
+            });
+        }
+
+        function deleteCustomer(customerId){
+            alertDelete().then(result=>{
+                if (result.isConfirmed){
+                    confirmDeleteCustomer(customerId);
+                }else{
+                    console.log('No se pudo eliminar',customerId);
+                }
+            });
+        }
+
+        function confirmDeleteCustomer(id){
+            $.ajax({
+                url:'@Url.Action("DeleteCustomer", "Customer")',
+                method:'DELETE',
+                data:{
+                    'customerId':id
+                },
+                dataType: 'json',
+                success: function(result)
+                {
+                console.log(result);
+                toastMessage('success','Registro eliminado exitosamente');
+                getAllCustomers();
+                },
+                error: function(error){
+                    console.error(error);
+                    alertError('Ha occurrido un error, por favor inténtalo nuevamente');
+                }
+            });
+        }
+
+        function loadTable(data){
+            $('#tblCustomer').DataTable({
+                data: data,
+                destroy:true,
+                responsitive:true,
+                columns:[
+                    {data:'customerId'},
+                    {data:'country'},
+                    {data:'companyName'},
+                    {data:'contactName'},
+                    {data:'phone'},
+                    {
+                        data: null,
+                        render: function(data){
+                            const id= data.customerId;
+                            return `
+                                     <button class="btn btn-warning" onClick = "editCustomer('`+ id +`')"> <i class="fas fa-edit"> </i> Edit </button>
+                                     <button class="btn btn-danger" onClick = "deleteCustomer('`+ id +`')"> <i class="fas fa-trash-alt"> </i> Delete </button>
+                                     `
+                        }
+                    }
+                ]
+            })
+        }
+
+        function clearFormCustomer(){
+             $('#txtId').val('');
+             $('#txtCountry').val('');
+             $('#txtCompany').val('');
+             $('#txtContactName').val('');
+             $('#txtPhone').val('');
+             $('#modalCustomer').modal('hide');
+             isEdit=false;
+             $('#txtId').attr('disabled',false);
+         }
+
+         function validateForm(){
+             if($('#txtId').val()==''){
+                 $('#txtId').focus()
+                 toastMessage("warning",'El IdCustomer es obligatorio.');
+                 return false;
+             }
+
+             if($('#txtCountry').val()==''){
+                 $('#txtCountry').focus()
+                 toastMessage("warning",'El País es obligatorio.');
+                 return false;
+             }
+
+             if($('#txtCompany').val()==''){
+                 $('#txtCompany').focus()
+                 toastMessage("warning",'La Empresa es obligatorio.');
+                 return false;
+             }
+
+             if($('#txtContactName').val()==''){
+                 $('#txtContactName').focus()
+                 toastMessage("warning",'El Responsable es obligatorio.');
+                 return false;
+             }
+
+             if($('#txtPhone').val()==''){
+                 $('#txtPhone').focus()
+                 toastMessage("warning",'El Teléfono es obligatorio.');
+                 return false;
+             }
+
+             return true;
+         }
+
+        function openModal(isEdit)
+        {
+             if(isEdit){
+                 $('#idTitleCustomer').html('Editar cliente');
+                 $('#btnModalSave').html('Editar');
+             }else{
+                 $('#idTitleCustomer').html('Crear cliente');
+                 $('#btnModalSave').html('Crear');
+             }
+
+             $('#modalCustomer').modal('show');
+
+        }
+         function onSaveCustomer(){
+             if(validateForm()){
+                 const idCustomer=$('#txtId').val();
+                 const company=$('#txtCompany').val();
+                 const contactName=$('#txtContactName').val();
+                 const country=$('#txtCountry').val();
+                 const phone=$('#txtPhone').val();
+
+                 const customer={
+                     'customerId':idCustomer,
+                     'companyName':company,
+                     'contactName':contactName,
+                     'country':country,
+                     'phone':phone,
+                 };
+
+                 if(isEdit){
+                     confirmEditCustomer(customer);
+
+                 }else{
+                     addCustomer(customer);
+                 }
+
+                 console.log(customer);
+             }
+         }
+
+         function addCustomer(parameter){
+              $.ajax({
+                 url:'@Url.Action("AddCustomer", "Customer")',
+                 method:'POST',
+                 data:parameter,
+                 dataType:'json',
+                 success:function(result)
+                 {
+                     console.log(result);
+                     toastMessage('success','Registro creado exitosamente');
+                     clearFormCustomer();
+                     getAllCustomers();
+                 },
+                 error:function(error)
+                 {
+                     console.error(error);
+                  alertError('Ha ocurrido un error, por favor vuelva a intentarlo');
+
+                 }
+             });
+         }
+
+         function editCustomer(id){
+             isEdit=true;
+             const customer=listCustomer.find(x=>x.customerId==id);
+             $('#txtId').val(customer.customerId);
+             $('#txtId').attr('disabled',true);
+             $('#txtCompany').val(customer.companyName);
+             $('#txtCountry').val(customer.country);
+             $('#txtContactName').val(customer.contactName);
+             $('#txtPhone').val(customer.phone);
+
+             console.log(id);
+             openModal(true);
+         }
+
+          function confirmEditCustomer(parameter){
+              $.ajax({
+                 url:'@Url.Action("UpdateCustomer", "Customer")',
+                 method:'PUT',
+                 data:parameter,
+                 dataType:'json',
+                 success:function(result)
+                 {
+                     console.log(result);
+                     toastMessage('success','Registro actualizado exitosamente');
+                     clearFormCustomer();
+                     getrAllCustomer();
+                 },
+                 error:function(error)
+                 {
+                     console.error(error);
+                  alertError('Ha ocurrido un error, por favor vuelva a intentarlo');
+
+                 }
+             });
+         }
+    </script>
+}
