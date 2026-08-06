@@ -25,14 +25,15 @@ namespace MVC.Domain.Services
 
         public async Task<List<ProductDto>> GetAllProducts()
         {
-            List<Product> products = await _context.Products.Include(x => x.Supplier)
+            List<Product> products = await _context.Products
+                                                  .Include(x => x.Supplier)
                                                   .Include(x => x.Category)
                                                   .ToListAsync();
             List<ProductDto> result = products.Select(static x => new ProductDto()
             {
                 ProductId = x.ProductId,
-                CategoryId =x.CategoryId,
-                SupplierId =x.SupplierId,
+                CategoryId = x.CategoryId,
+                SupplierId = x.SupplierId,
                 ProductName = x.ProductName,
                 UnitPrice = x.UnitPrice,
                 UnitsInStock = x.UnitsInStock,
@@ -50,15 +51,15 @@ namespace MVC.Domain.Services
             {
                 throw new Exception($"Product with id {productId} does not exits");
             }
-            /* ProductDto result = new ProductDto()
-             {
-                 ProductId = x.ProductId,
-                 ProductName = x.ProductName,
-                 CategoryId = x.CategoryId,
-                 SupplierId = x.SupplierId,
-                 UnitPrice = x.UnitPrice,
-                 UnitsInStock = x.UnitsInStock
-             };*/
+            ProductDto result = new ProductDto()
+            {
+                ProductId = x.ProductId,
+                ProductName = x.ProductName,
+                CategoryId = x.CategoryId,
+                SupplierId = x.SupplierId,
+                UnitPrice = x.UnitPrice,
+                UnitsInStock = x.UnitsInStock
+            };
             return x;
         }
 
