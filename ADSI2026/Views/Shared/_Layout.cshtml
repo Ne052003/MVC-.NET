@@ -43,6 +43,14 @@
             </div>
         </nav>
     </header>
+
+    <div id="overlay" class="overlay">
+        <div class="loader">
+            <img src="~/imgs/dualBall.gif" alt="Loading..." id="loaderImage">
+            <p>Cargando...</p>
+        </div>
+    </div>
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -127,6 +135,26 @@
         confirmButtonText: 'Aceptar!',
         });
         }
+
+        function errorHttp(error)
+        {
+        if( (error.status == 400) || (error.status==401) )
+        {
+        alertWarning(error.responseJSON.message)
+        }else{
+        alertError(error.responseJSON.message)
+        }
+        }
+
+
+        // Mostrar el loader durante las solicitudes AJAX
+        $(document).ajaxStart(function () {
+        $("#overlay").css("display", "flex");
+        });
+
+        $(document).ajaxStop(function () {
+        $("#overlay").hide();
+        });
     </script>
 </body>
 </html>
