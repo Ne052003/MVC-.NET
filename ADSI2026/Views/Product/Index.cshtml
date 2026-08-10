@@ -67,9 +67,6 @@
 
                         </div>
 
-
-
-
                         <div class="col-md-6">
                             <label class="col-form-label">Supplier</label>
                             <select id="cmbSupplier" class="form-control" onchange="changeCmbSupplier()">
@@ -93,6 +90,7 @@
         var isEdit=false;
         var idCategorySelected=0;
         var idSupplierSelected=0;
+        var idProductSelected=0;
         var listProduct= [];
         var listCategory= [];
         var listSupplier= [];
@@ -147,7 +145,7 @@
                 {
                 listProduct=result;
                 console.log(listProduct);
-                //loadTable(result);
+                loadTable(result);
                 },
                 error: function(error){
                     console.error(error);
@@ -158,12 +156,12 @@
 
         function loadCmbCategory(data, selected){
             $("#cmbCategory").empty();
-            $("#cmbCategory").append('<option value=""disabled selected>Seleccione una categoría></option>');
+            $("#cmbCategory").append('<option value="" disabled selected>Seleccione una categoría</option>');
             $.each(data,function(i,lista){
-                if(data[i].idCategory == selected){
-                    $("#cmbCategory").append('<option value="'+ data[i].idCategory + '"selected>' + data[i].categoryName + '</option>')
+                if(data[i].categoryId == selected){
+                    $("#cmbCategory").append('<option value="'+ data[i].categoryId + '"selected>' + data[i].categoryName + '</option>')
                 }else{
-                    $("#cmbCategory").append('<option value="'+ data[i].idCategory + '">' + data[i].categoryName + '</option>')
+                    $("#cmbCategory").append('<option value="'+ data[i].categoryId + '">' + data[i].categoryName + '</option>')
                 }
             });
 
@@ -171,9 +169,9 @@
 
         function loadCmbSupplier(data, selected){
             $("#cmbSupplier").empty();
-            $("#cmbSupplier").append('<option value=""disabled selected>Seleccione un proveedor></option>');
+            $("#cmbSupplier").append('<option value=""disabled selected>Seleccione un proveedor</option>');
             $.each(data,function(i,lista){
-                if(data[i].idCategory == selected){
+                if(data[i].supplierId == selected){
                     $("#cmbSupplier").append('<option value="'+ data[i].supplierId + '"selected>' + data[i].companyName + '</option>')
                 }else{
                     $("#cmbSupplier").append('<option value="'+ data[i].supplierId + '">' + data[i].companyName + '</option>')
@@ -184,14 +182,14 @@
 
         function changeCmbSupplier(){
             const cmb= document.getElementById("cmbSupplier");
-            idSupplier = cmb.options[cmb.selectedIndex].value;
-            console.log('valor ha cambiado:', idSupplier);
+            idSupplierSelected = cmb.options[cmb.selectedIndex].value;
+            console.log('valor ha cambiado:', idSupplierSelected);
         }
 
         function changeCmbCategory(){
             const cmb= document.getElementById("cmbCategory");
-            idCategory = cmb.options[cmb.selectedIndex].value;
-            console.log('valor ha cambiado:', idCategory);
+            idCategorySelected = cmb.options[cmb.selectedIndex].value;
+            console.log('valor ha cambiado:', idCategorySelected);
         }
 
         function deleteProduct(productId){
@@ -232,10 +230,10 @@
                 responsitive:true,
                 columns:[
                     {data:'productName'},
-                    {data:'supplierId'},
-                    {data:'categoryId'},
                     {data:'unitPrice'},
                     {data:'unitsInStock'},
+                    {data:'category'},
+                    {data:'supplier'},
                     {
                         data: null,
                         render: function(data){
@@ -255,37 +253,43 @@
              $('#txtPrice').val('');
              $('#txtStock').val('');
              $('#modalProduct').modal('hide');
-             isEdit=false;
+
+             idCategorySelected=0;
+             idSupplierSelected=0;
+             idProductSelected=0;
+             isEdit= false;
+             
          }
 
          function validateForm(){
-             if($('#txtId').val()==''){
-                 $('#txtId').focus()
-                 toastMessage("warning",'El IdProduct es obligatorio.');
+
+             if($('#txtProduct').val()==''){
+                 $('#txtProduct').focus()
+                 toastMessage("warning",'El Nombre del producto es obligatorio.');
                  return false;
              }
 
-             if($('#txtCountry').val()==''){
-                 $('#txtCountry').focus()
-                 toastMessage("warning",'El País es obligatorio.');
+             if($('#txtPrice').val()==''){
+                 $('#txtPrice').focus()
+                 toastMessage("warning",'El precio es obligatorio.');
                  return false;
              }
 
-             if($('#txtCompany').val()==''){
-                 $('#txtCompany').focus()
-                 toastMessage("warning",'La Empresa es obligatorio.');
+             if($('#txtStock').val()==''){
+                 $('#txtStock').focus()
+                 toastMessage("warning",'La cantidad es obligatoria.');
                  return false;
              }
 
-             if($('#txtContactName').val()==''){
-                 $('#txtContactName').focus()
-                 toastMessage("warning",'El Responsable es obligatorio.');
+             if(idCategorySelected==0){
+                 $('#cmbCategory').focus()
+                 toastMessage("warning",'La categoría es obligatoria.');
                  return false;
              }
 
-             if($('#txtPhone').val()==''){
-                 $('#txtPhone').focus()
-                 toastMessage("warning",'El Teléfono es obligatorio.');
+             if(idSupplierSelected==0){
+                 $('#cmbSupplier').focus()
+                 toastMessage("warning",'El proveedor es obligatorio.');
                  return false;
              }
 
@@ -306,23 +310,25 @@
 
         }
          function onSaveProduct(){
+
              if(validateForm()){
-                 const idProduct=$('#txtId').val();
-                 const company=$('#txtCompany').val();
-                 const contactName=$('#txtContactName').val();
-                 const country=$('#txtCountry').val();
-                 const phone=$('#txtPhone').val();
+                 const productName=$('#txtProduct').val();
+                 const price=$('#txtPrice').val();
+                 const stock=$('#txtStock').val();
+                 const categoryId= document.getElementById("cmbCategory").selectedIndex;
+                 const supplierId= document.getElementById("cmbSupplier").selectedIndex;
 
                  const product={
-                     'productId':idProduct,
-                     'companyName':company,
-                     'contactName':contactName,
-                     'country':country,
-                     'phone':phone,
+                     'productId':idProductSelected,
+                     'productName':productName,
+                     'unitsInStock':stock,
+                     'unitPrice':price,
+                     'categoryId':categoryId,
+                     'supplierId':supplierId,
                  };
 
                  if(isEdit){
-                   // confirmEditProduct(product);
+                   confirmEditProduct(product);
 
                  }else{
                      addProduct(product);
@@ -330,6 +336,28 @@
 
                  console.log(product);
              }
+         }
+
+         function confirmEditProduct(parameter){
+              $.ajax({
+                 url:'@Url.Action("UpdateProduct", "Product")',
+                 method:'PUT',
+                 data:parameter,
+                 dataType:'json',
+                 success:function(result)
+                 {
+                     console.log(result);
+                     toastMessage('success','Registro actualizado exitosamente');
+                     clearFormProduct();
+                     getAllProducts();
+                 },
+                 error:function(error)
+                 {
+                     console.error(error);
+                  alertError('Ha ocurrido un error, por favor vuelva a intentarlo');
+
+                 }
+             });
          }
 
          function addProduct(parameter){
@@ -357,14 +385,18 @@
          function editProduct(id){
              isEdit=true;
              const product=listProduct.find(x=>x.productId==id);
-             $('#txtId').val(product.productId);
-             $('#txtId').attr('disabled',true);
-             $('#txtCompany').val(product.companyName);
-             $('#txtCountry').val(product.country);
-             $('#txtContactName').val(product.contactName);
-             $('#txtPhone').val(product.phone);
+             idProductSelected=id;
+             idCategorySelected=product.categoryId;
+             idSupplierSelected=product.supplierId;
+             loadCmbCategory(listCategory,product.categoryId);
+             loadCmbSupplier(listSupplier,product.supplierId);
 
-             console.log(id);
+             $('#txtProduct').val(product.productName);
+             $('#txtStock').val(product.unitsInStock);
+             $('#txtPrice').val(product.unitPrice);
+             $('#cmbSupplier').val(product.supplierId);
+             $('#cmbCategory').val(product.categoryId);
+
              openModal(true);
          }
 

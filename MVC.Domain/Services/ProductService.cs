@@ -93,15 +93,16 @@ namespace MVC.Domain.Services
         {
             var entity = await GetProductAsync(updateProduct.ProductId);
 
-            Product newProduct = new Product();
-            newProduct.ProductId = updateProduct.ProductId;
-            newProduct.UnitsInStock = updateProduct.UnitsInStock;
-            newProduct.ProductName = updateProduct.ProductName;
-            newProduct.SupplierId = updateProduct.SupplierId;
-            newProduct.UnitPrice = updateProduct.UnitPrice;
-            newProduct.CategoryId = updateProduct.CategoryId;
 
-            _context.Products.Update(newProduct);
+            entity.ProductId = updateProduct.ProductId;
+            entity.UnitsInStock = updateProduct.UnitsInStock;
+            entity.ProductName = updateProduct.ProductName;
+            entity.SupplierId = updateProduct.SupplierId;
+            entity.UnitPrice = updateProduct.UnitPrice;
+            entity.CategoryId = updateProduct.CategoryId;
+
+
+            _context.Products.Update(entity);
             bool success = await _context.SaveChangesAsync() > 0;
 
             return success;
