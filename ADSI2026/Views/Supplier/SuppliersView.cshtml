@@ -1,6 +1,16 @@
 ﻿@model IEnumerable<MVC.Infrastructure.Models.Supplier>
 
-<h1>Suppliers</h1>
+<div class="row">
+    <div class="col-md-8">
+        <h1>Supplier List </h1>
+    </div>
+    <div class="col-md-4">
+        <button type="button" class="btn btn-primary float-end" onclick="openModal(false)">
+            <i class="fa-solid fa-plus"></i>
+            Create Supplier
+        </button>
+    </div>
+</div>
 
 <div class="row">
     <div class="col-md-12">
@@ -13,6 +23,7 @@
                     <th>Address</th>
                     <th>City</th>
                     <th>Country</th>
+                    <th class="text-center text-nowrap" style="width:170px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -22,14 +33,66 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalSupplier" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="idTitleSupplier">Create supplier</h1>
+                <button type="button" class="btn-close" onclick="clearFormSupplier()" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <section class="row">
+                        <div class="col-md-4">
+                            <label class="col-form-label">Company</label>
+                            <input type="text" class="form-control" id="txtCompany" placeholder="Company" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="col-form-label">Contact Name</label>
+                            <input type="text" class="form-control" id="txtContact" placeholder="Contact Name" maxlength="70" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="col-form-label">Phone</label>
+                            <input type="text" class="form-control" id="txtPhone" placeholder="Phone" inputmode="numeric" maxlength="15" />
+                        </div>
+                    </section>
+
+                    <section class="row">
+
+                        <div class="col-md-4">
+                            <label class="col-form-label">Address</label>
+                            <input type="text" class="form-control" id="txtAddress" placeholder="Address" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="col-form-label">City</label>
+                            <input type="text" class="form-control" id="txtCity" placeholder="City" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="col-form-label">Country</label>
+                            <input type="text" class="form-control" id="txtCountry" placeholder="Country" maxlength="70" />
+                        </div>
+                    </section>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" onclick="clearFormSupplier()">Cancel</button>
+                <button type="button" id="btnModalSave" class="btn btn-outline-success" onclick="onSaveSupplier()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script type="text/javascript">
-        var idCustomer='';
-        var listCustomer=[];
+        var supplierId = '';
+        var supplierList = [];
+        var isEdit = false;
 
         $(document).ready(function(){
-            console.log("Hola clase");
             getAllSuppliers();
+            $('#txtPhone').on('input', function() {
+                this.value = this.value.replace(/\D/g, '');
+                });
 
         });
 
@@ -40,19 +103,19 @@
                 dataType: 'json',
                 success: function(result)
                 {
-
-                console.log(result);
-                loadTable(result);
+                    console.log(result);
+                    loadTable(result);
+                    supplierList=result;
                 },
                 error: function(error){
-                    console.error(error);
+                    alertError('Ha ocurrido un error, por favor vuelva a intentarlo');
                 }
             });
         }
 
         function loadTable(data){
             $('#tblSuppliers').DataTable({
-                data:data,
+                data: data,
                 destroy:true,
                 responsitive:true,
                 columns:[
@@ -62,8 +125,200 @@
                     {data:'address'},
                     {data:'city'},
                     {data:'country'},
+                    {
+                        data: null,
+                        render: function(data){
+                            const id = data.supplierId;
+                            return `
+                                     <button class="btn btn-warning" onClick = "editSupplier('`+ id +`')"> <i class="fas fa-edit"></i>Edit</button>
+                                     <button class="btn btn-danger" onClick = "deleteSupplier('`+ id +`')"> <i class="fas fa-trash-alt"></i>Delete</button>
+                                     `
+
+                        }
+                    }
                 ]
             })
         }
+
+        function onSaveSupplier(){
+            if(validateForm()){
+                const companyName= $('#txtCompany').val();
+                const contactName= $('#txtContact').val();
+                const phone= $('#txtPhone').val();
+                const country= $('#txtCountry').val();
+                const city= $('#txtCity').val();
+                const address= $('#txtAddress').val();
+
+                const supplier= {
+                    'supplierId': supplierId,
+                    'companyName': companyName,
+                    'contactName': contactName,
+                    'phone': phone,
+                    'country': country,
+                    'city': city,
+                    'address': address
+                };
+
+                if(isEdit){
+                    confirmEditSupplier(supplier);
+                }else{
+                    addSupplier(supplier);
+                }
+            }
+
+           
+        }
+
+        function editSupplier(id){
+
+            isEdit = true;
+            supplierId=id;
+            const supplier = supplierList.find(x=>x.supplierId==id);
+
+
+            console.log(supplierId);
+            console.log(supplier);
+
+            $('#txtCompany').val(supplier.companyName);
+            $('#txtContact').val(supplier.contactName);
+            $('#txtPhone').val(supplier.phone);
+            $('#txtCountry').val(supplier.country);
+            $('#txtCity').val(supplier.city);
+            $('#txtAddress').val(supplier.address);
+            openModal(true);
+
+        }
+
+        function deleteSupplier(id){
+            console.log(id);
+            alertDelete().then(result=>{
+                if (result.isConfirmed){
+                    confirmDeleteSupplier(id);
+                }else{
+                    console.log('No se pudo eliminar',id);
+                }
+            })
+        }
+
+        function addSupplier(supplier){
+            $.ajax({
+                url: '@Url.Action("AddSupplier", "Supplier")',
+                method: 'POST',
+                data: supplier,
+                dataType: 'json',
+                success: function(result){
+                toastMessage('success','Registro creado exitosamente');
+                getAllSuppliers();
+                clearFormSupplier();
+                },
+                error: function(error){
+                    console.error(error);
+                    alertError('Ha occurrido un error, por favor inténtalo nuevamente');
+                }
+            });
+        }
+
+        function confirmDeleteSupplier(id){
+            $.ajax({
+                url: '@Url.Action("DeleteSupplier", "Supplier")',
+                method: 'DELETE',
+                data: {
+                    'supplierId': id
+                },
+                dataType: 'json',
+                success: function(result){
+                toastMessage('success','Registro eliminado exitosamente');
+                getAllSuppliers();
+                },
+                error: function(error){
+                    console.error(error);
+                    alertError('Ha occurrido un error, por favor inténtalo nuevamente');
+                }
+            });
+        }
+
+        function confirmEditSupplier(supplier){
+            console.log(supplier);
+            $.ajax({
+                url: '@Url.Action("UpdateSupplier", "Supplier")',
+                method: 'PUT',
+                data: supplier,
+                dataType: 'json',
+                success: function(result){
+                toastMessage('success','Registro actualizado exitosamente');
+                getAllSuppliers();
+                },
+                error: function(error){
+                    console.error(error);
+                    alertError('Ha occurrido un error, por favor inténtalo nuevamente');
+                }
+            });
+        }
+
+        
+
+        function clearFormSupplier(){
+            $('#txtCompany').val('');
+            $('#txtContact').val('');
+            $('#txtCountry').val('');
+            $('#txtCity').val('');
+            $('#txtAddress').val('');
+            $('#txtPhone').val('');
+            isEdit = false;
+            $('#modalSupplier').modal('hide');
+        }
+
+        function openModal(isEdit){
+
+            if(isEdit){
+                $('#idTitleSupplier').html('Edit Supplier');
+                $('#btnModalSave').html('Edit');
+            }else{
+                $('#idTitleSupplier').html('Save Supplier');
+                $('#btnModalSave').html('Save');
+            }
+
+            $('#modalSupplier').modal('show');
+        }
+
+        function validateForm(){
+             if($('#txtCompany').val()==''){
+                 $('#txtCompany').focus()
+                 toastMessage("warning",'La empresa es obligatoria.');
+                 return false;
+             }
+
+             if($('#txtContact').val()==''){
+                 $('#txtContact').focus()
+                 toastMessage("warning",'El responsable es obligatorio.');
+                 return false;
+             }
+
+             if($('#txtPhone').val()==''){
+                 $('#txtPhone').focus()
+                 toastMessage("warning",'El teléfono es obligatorio.');
+                 return false;
+             }
+
+             if($('#txtAddress').val()==''){
+                 $('#txtAddress').focus()
+                 toastMessage("warning",'La dirección es obligatoria.');
+                 return false;
+             }
+
+             if($('#txtCity').val()==''){
+                 $('#txtCity').focus()
+                 toastMessage("warning",'La ciudad es obligatoria.');
+                 return false;
+             }
+
+             if($('#txtCountry').val()==''){
+                 $('#txtCountry').focus()
+                 toastMessage("warning",'El País es obligatorio.');
+                 return false;
+             }
+
+             return true;
+         }
     </script>
 }
