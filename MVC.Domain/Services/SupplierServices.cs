@@ -66,6 +66,7 @@ namespace MVC.Domain.Services
                 ContactName = Supplier.ContactName,
                 Address = Supplier.Address,
                 Country = Supplier.Country,
+                City= Supplier.City,
                 Phone = Supplier.Phone
             };
 
@@ -78,19 +79,20 @@ namespace MVC.Domain.Services
         public async Task<bool> UpdateSupplierAsync(UpdateSupplierDto update)
         {
 
-            var entity = await GetSupplierAsync(update.SupplierId);
-
-            Supplier supplierDB = new()
+            var supplier = await _context.Suppliers.FirstOrDefaultAsync(s => s.SupplierId == update.SupplierId);
+            if (supplier == null)
             {
-                SupplierId = entity.SupplierId,
-                CompanyName = update.CompanyName,
-                ContactName = update.ContactName,
-                Address = update.Address,
-                Country = update.Country,
-                Phone = update.Phone
-            };
+                throw new Exception($"Supplier with id {update.SupplierId} does not exist");
+            }
 
-            _context.Suppliers.Update(supplierDB);
+            supplier.CompanyName = update.CompanyName;
+            supplier.ContactName = update.ContactName;
+            supplier.Address = update.Address;
+            supplier.Country = update.Country;
+            supplier.City = update.City;
+            supplier.Phone = update.Phone;
+
+            _context.Suppliers.Update(supplier);
             bool success = await _context.SaveChangesAsync() > 0;
 
             return success;
@@ -99,21 +101,21 @@ namespace MVC.Domain.Services
         public async Task<bool> DeleteSupplierAsync(int SupplierId)
         {
 
-            var entity = await GetSupplierAsync(SupplierId);
-            Supplier supplierDB = new()
+            var supplier = await _context.Suppliers
+                                 .Include(s => s.Products)
+                                 .FirstOrDefaultAsync(s => s.SupplierId == SupplierId);
+            if (supplier == null)
+                throw new Exception($"Supplier with id {SupplierId} does not exist");
+
+            _context.Suppliers.Remove(supplier);
+            try
             {
-                SupplierId = entity.SupplierId,
-                CompanyName = entity.CompanyName,
-                ContactName = entity.ContactName,
-                Address = entity.Address,
-                Country = entity.Country,
-                Phone = entity.Phone
-            };
-
-            _context.Suppliers.Remove(supplierDB);
-            bool success = await _context.SaveChangesAsync() > 0;
-
-            return success;
+                return await _context.SaveChangesAsync() > 0;
+            }
+            catch (DbUpdateException ex)
+            {
+                throw new Exception("Error deleting supplier: " + (ex.InnerException?.Message ?? ex.Message), ex);
+            }
         }
     }
 }

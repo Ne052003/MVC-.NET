@@ -36,21 +36,21 @@
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="exampleModalLabel">Create customer</h1>
-                <button type="button" class="btn-close" onclick="clearFormCustomer" aria-label="Close"></button>
+                <h1 class="modal-title fs-5" id="idTitleCustomer">Create customer</h1>
+                <button type="button" class="btn-close" onclick="clearFormCustomer()" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form>
                     <section class="row">
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label class="col-form-label">ID</label>
                             <input type="text" class="form-control" id="txtId" maxlength="5" placeholder="Digita el ID" />
                         </div>
                         <div class="col-md-4">
                             <label class="col-form-label">País</label>
-                            <input type="text" class="form-control" id="txtCountry" placeholder="País" />
+                            <input type="text" class="form-control" id="txtCountry" placeholder="País" maxlength="70" />
                         </div>
-                        <div class="col-md-5">
+                        <div class="col-md-4">
                             <label class="col-form-label">Empresa</label>
                             <input type="text" class="form-control" id="txtCompany" placeholder="Empresa" />
                         </div>
@@ -64,7 +64,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="col-form-label">Teléfono</label>
-                            <input type="text" class="form-control" id="txtPhone" placeholder="Teléfono" />
+                            <input type="text" class="form-control" id="txtPhone" placeholder="Teléfono" inputmode="numeric" pattern="[0-9]*" maxlength="15" />
                         </div>
                     </section>
                 </form>
@@ -84,11 +84,10 @@
         var listCustomer=[];
 
         $(document).ready(function(){
-            console.log("Hola clase");
 
-            $(document).ready(function(){
             getAllCustomers();
-
+            $('#txtPhone').on('input', function() {
+            this.value = this.value.replace(/\D/g, '');
             });
         });
 
@@ -250,11 +249,11 @@
              }
          }
 
-         function addCustomer(parameter){
+         function addCustomer(customer){
               $.ajax({
                  url:'@Url.Action("AddCustomer", "Customer")',
                  method:'POST',
-                 data:parameter,
+                 data:customer,
                  dataType:'json',
                  success:function(result)
                  {
