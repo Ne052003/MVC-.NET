@@ -37,18 +37,18 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h1 class="modal-title fs-5" id="idTitleProduct">Create product</h1>
-                <button type="button" class="btn-close" onclick="clearFormProduct" aria-label="Close"></button>
+                <button type="button" class="btn-close" onclick="clearFormProduct()" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form>
                     <section class="row">
                         <div class="col-md-3">
                             <label class="col-form-label">Product</label>
-                            <input type="text" class="form-control" id="txtProduct" maxlength="5" placeholder="Nombre del producto" />
+                            <input type="text" class="form-control" id="txtProduct" placeholder="Nombre del producto" />
                         </div>
                         <div class="col-md-4">
                             <label class="col-form-label">Price</label>
-                            <input type="text" class="form-control" id="txtPrice" placeholder="Precio" />
+                            <input type="text" class="form-control" id="txtPrice" placeholder="Precio" inputmode="decimal" />
                         </div>
                         <div class="col-md-5">
                             <label class="col-form-label">Stock</label>
@@ -99,6 +99,13 @@
             getAllCategories();
             getAllProducts();
             getAllSuppliers();
+
+           $('#txtPrice').on('input', function() {
+            this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+            });
+           $('#txtStock').on('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            });
         });
 
         
@@ -253,6 +260,8 @@
              $('#txtPrice').val('');
              $('#txtStock').val('');
              $('#modalProduct').modal('hide');
+             $('#cmbSupplier').prop('selectedIndex', 0);
+             $('#cmbCategory').prop('selectedIndex', 0);
 
              idCategorySelected=0;
              idSupplierSelected=0;
@@ -333,8 +342,10 @@
                  }else{
                      addProduct(product);
                  }
-
-                 console.log(product);
+                 clearFormProduct();
+                 getAllCategories();
+                 getAllProducts();
+                 getAllSuppliers();
              }
          }
 
