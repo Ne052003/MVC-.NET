@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ADSI2026.Handlers;
+using Microsoft.AspNetCore.Mvc;
 using MVC.Domain.Services.Interfaces;
 using MVC.Infrastructure.DTO.Supplier;
 
 namespace ADSI2026.Controllers
 {
+    [TypeFilter(typeof(CustomExceptionHandler))]
     public class SupplierController : Controller
     {
         private readonly ISupplierServices _supplierServices;

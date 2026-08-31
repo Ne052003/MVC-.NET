@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ADSI2026.Handlers;
+using Microsoft.AspNetCore.Mvc;
 using MVC.Domain.Services;
 using MVC.Domain.Services.Interfaces;
 using MVC.Infrastructure.DTO.Customer;
@@ -7,6 +8,7 @@ using MVC.Infrastructure.DTO.Supplier;
 
 namespace ADSI2026.Controllers
 {
+    [TypeFilter(typeof(CustomExceptionHandler))]
     public class ProductController : Controller
     {
         #region Properties
@@ -60,7 +62,7 @@ namespace ADSI2026.Controllers
 
         }
 
-        [HttpPut("DeleteProduct")]
+        [HttpDelete("DeleteProduct")]
         public async Task<IActionResult> DeleteProduct(int productId)
         {
             bool sucess = await _productService.DeleteProductAsync(productId);

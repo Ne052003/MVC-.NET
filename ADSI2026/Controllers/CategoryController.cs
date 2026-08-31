@@ -1,3 +1,4 @@
+using ADSI2026.Handlers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MVC.Infrastructure.DataContext;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace ADSI2026.Controllers
 {
+    [TypeFilter(typeof(CustomExceptionHandler))]
     public class CategoryController : Controller
     {
         private readonly NorthwindContext _context;

@@ -1,9 +1,11 @@
+using ADSI2026.Handlers;
 using ADSI2026.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
 namespace ADSI2026.Controllers
 {
+    [TypeFilter(typeof(CustomExceptionHandler))]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
